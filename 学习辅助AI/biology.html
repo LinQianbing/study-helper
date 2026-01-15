@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生物学习助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background-color: #ed8936;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        header h1 {
+            font-size: 20px;
+            font-weight: 500;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            margin: 0;
+        }
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .chat-message {
+            display: flex;
+            margin-bottom: 10px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+        .chat-message.ai {
+            justify-content: flex-start;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 15px;
+            font-size: 16px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+        }
+        .message-bubble.user {
+            background-color: #ed8936;
+            color: white;
+        }
+        .message-bubble.ai {
+            background-color: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .input-area {
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+        }
+        .input-area input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .input-area button {
+            background-color: #ed8936;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .input-area .menu-btn {
+            background-color: #fff;
+            color: #ed8936;
+            border: 1px solid #ed8936;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .menu {
+            position: absolute;
+            bottom: 70px;
+            left: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+        .menu a {
+            display: block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+        }
+        .menu a:last-child {
+            border-bottom: none;
+        }
+        .menu a:hover {
+            background-color: #f4f4f4;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button onclick="goBack()">←</button>
+        <h1>生物学习助手</h1>
+    </header>
+
+    <div class="chat-container" id="chat-container"></div>
+
+    <div class="input-area">
+        <button class="menu-btn" onclick="toggleMenu()">+</button>
+        <input type="text" id="input-msg" placeholder="输入消息..." onkeyup="enableSendButton()">
+        <button id="send-btn" onclick="sendMessage()" disabled>发送</button>
+    </div>
+
+    <div class="menu" id="menu">
+        <a href="#" onclick="uploadImage()">上传图片</a>
+        <a href="#" onclick="summarizeKnowledge()">知识总结</a>
+        <a href="#" onclick="intelligentTest()">智能测试</a>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const inputField = document.getElementById('input-msg');
+        const sendButton = document.getElementById('send-btn');
+        const menu = document.getElementById('menu');
+
+        function enableSendButton() {
+            if (inputField.value.trim() !== '') {
+                sendButton.disabled = false;
+            } else {
+                sendButton.disabled = true;
+            }
+        }
+
+        function sendMessage() {
+            const messageText = inputField.value.trim();
+            if (messageText) {
+                addMessage('user', messageText);
+                inputField.value = '';
+                sendButton.disabled = true;
+                // Simulate AI response
+                setTimeout(() => {
+                    addMessage('ai', '这是AI的回复：' + messageText);
+                }, 1000);
+            }
+        }
+
+        function addMessage(sender, messageText) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('chat-message', sender);
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble', sender);
+            messageBubble.textContent = messageText;
+            messageContainer.appendChild(messageBubble);
+            chatContainer.appendChild(messageContainer);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function toggleMenu() {
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
+        function uploadImage() {
+            const inputFile = document.createElement('input');
+            inputFile.type = 'file';
+            inputFile.accept = 'image/*';
+            inputFile.addEventListener('change', function() {
+                const file = inputFile.files[0];
+                if (file) {
+                    addMessage('user', '你上传了一张图片：' + file.name);
+                }
+            });
+            inputFile.click();
+        }
+
+        function summarizeKnowledge() {
+            const summaryText = prompt('请输入要总结的内容：');
+            if (summaryText) {
+                addMessage('user', '总结内容：' + summaryText);
+                setTimeout(() => {
+                    addMessage('ai', '这是知识总结：' + summaryText);
+                }, 1000);
+            }
+        }
+
+        function intelligentTest() {
+            const testQuestion = prompt('请输入测试问题：');
+            if (testQuestion) {
+                addMessage('user', '你的问题：' + testQuestion);
+                setTimeout(() => {
+                    addMessage('ai', 'AI的回答：' + testQuestion);
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>物理学习助手</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --wechat-bg: #ededed;
+            --user-bubble: #95ec69;
+            --ai-bubble: #ffffff;
+            --primary-blue: #07c160; /* 微信绿，可根据喜好改为蓝色 #007aff */
+            --header-bg: #ededed;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto;
+            background-color: var(--wechat-bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航栏 */
+        header {
+            height: 50px;
+            background-color: var(--header-bg);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            border-bottom: 1px solid #ddd;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+        }
+
+        header .back-btn {
+            font-size: 20px;
+            color: #333;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+
+        header h1 {
+            font-size: 17px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+            margin-right: 35px; /* 补偿返回按钮宽度以居中 */
+        }
+
+        /* 聊天消息区域 */
+        #chat-container {
+            flex: 1;
+            padding: 70px 15px 100px; /* 留出顶部和底部高度 */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 15px;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* AI 消息 (左侧) */
+        .ai-message {
+            align-self: flex-start;
+            background-color: var(--ai-bubble);
+            color: #000;
+            border-top-left-radius: 2px;
+        }
+
+        /* 用户消息 (右侧) */
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-bubble);
+            color: #000;
+            border-top-right-radius: 2px;
+        }
+
+        /* 底部输入区域 */
+        footer {
+            background-color: #f7f7f7;
+            border-top: 1px solid #ddd;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            font-size: 24px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        #message-input {
+            flex: 1;
+            height: 38px;
+            border: none;
+            border-radius: 4px;
+            padding: 0 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .send-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: none; /* 初始隐藏，输入文字后显示 */
+        }
+
+        /* + 菜单面板 */
+        #plus-menu {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px 10px;
+            animation: slideUp 0.2s ease;
+        }
+
+        @keyframes slideUp {
+            from { height: 0; opacity: 0; }
+            to { height: 100px; opacity: 1; }
+        }
+
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .menu-icon {
+            width: 55px;
+            height: 55px;
+            background-color: #fff;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+        <h1>物理学习助手</h1>
+    </header>
+
+    <main id="chat-container">
+        <div class="message ai-message">
+            同学你好！我是你的物理AI助手。你可以向我询问力学、电磁学等任何物理问题，也可以拍照上传题目。
+        </div>
+    </main>
+
+    <footer>
+        <div class="input-row">
+            <i class="far fa-plus-square icon-btn" id="plus-btn"></i>
+            <input type="text" id="message-input" placeholder="输入问题..." autocomplete="off">
+            <button class="send-btn" id="send-btn">发送</button>
+        </div>
+
+        <div id="plus-menu">
+            <div class="menu-item" onclick="alert('上传图片功能')">
+                <div class="menu-icon"><i class="far fa-image"></i></div>
+                <span>上传图片</span>
+            </div>
+            <div class="menu-item" onclick="handleMenuClick('知识总结')">
+                <div class="menu-icon"><i class="fas fa-book"></i></div>
+                <span>知识总结</span>
+            </div>
+            <div class="menu-item" onclick="handleMenuClick('智能测试')">
+                <div class="menu-icon"><i class="fas fa-pencil-alt"></i></div>
+                <span>智能测试</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const plusBtn = document.getElementById('plus-btn');
+        const plusMenu = document.getElementById('plus-menu');
+        const chatContainer = document.getElementById('chat-container');
+
+        // 监听输入框变化显示/隐藏发送按钮
+        messageInput.addEventListener('input', () => {
+            if (messageInput.value.trim() !== "") {
+                sendBtn.style.display = "block";
+            } else {
+                sendBtn.style.display = "none";
+            }
+        });
+
+        // 发送消息函数 - 连接到本地Ollama AI
+        async function sendMessage(text) {
+            if (!text) return;
+
+            // 添加用户消息
+            appendMessage(text, 'user');
+            messageInput.value = "";
+            sendBtn.style.display = "none";
+
+            // 显示“思考中”的AI消息
+            const thinkingMsg = appendMessage('思考中...', 'ai');
+
+            try {
+                // 调用本地Ollama API
+                const response = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'gemma3:4b',
+                        prompt: text,
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // 删除“思考中”消息，替换为真实回复
+                thinkingMsg.remove();
+                appendMessage(data.response, 'ai');
+
+            } catch (error) {
+                // 删除“思考中”消息，显示错误
+                thinkingMsg.remove();
+                appendMessage(`错误: ${error.message}`, 'ai');
+                console.error('API调用失败:', error);
+            }
+        }
+
+        function appendMessage(text, role) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${role}-message`;
+            msgDiv.innerText = text;
+            chatContainer.appendChild(msgDiv);
+            
+            // 滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return msgDiv; // 返回消息元素引用，便于后续操作
+        }
+
+        // 点击发送按钮
+        sendBtn.addEventListener('click', () => {
+            sendMessage(messageInput.value);
+        });
+
+        // 回车发送
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage(messageInput.value);
+        });
+
+        // 切换 + 菜单
+        plusBtn.addEventListener('click', () => {
+            const isVisible = plusMenu.style.display === 'grid';
+            plusMenu.style.display = isVisible ? 'none' : 'grid';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        // 处理菜单项点击
+        function handleMenuClick(type) {
+            sendMessage(`请帮我进行${type}`);
+            plusMenu.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

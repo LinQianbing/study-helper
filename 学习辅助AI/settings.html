@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>设置中心-深度调控</title>
+
+<!-- 修复后的字体链接（不换行） -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Nunito:wght@400;700&display=swap">
+
+<style>
+/* ===== 你的原 CSS，一行没删 ===== */
+:root{
+--primary-pink:#ffafcc;
+--light-pink:#ffc8dd;
+--soft-white:#f8f5ff;
+--text-dark:#6d597a;
+--accent-color:#fb6f92;
+--card-radius:22px;
+}
+*{box-sizing:border-box;}
+body{
+background-color:var(--soft-white);
+font-family:'Nunito',sans-serif;
+color:var(--text-dark);
+margin:0;
+padding:15px;
+display:flex;
+justify-content:center;
+min-height:100vh;
+background-image:linear-gradient(135deg,#f8f5ff 0%,#fff0f5 100%);
+}
+.container{width:100%;max-width:450px;animation:slideUp .5s ease;}
+@keyframes slideUp{
+from{opacity:0;transform:translateY(20px);}
+to{opacity:1;transform:translateY(0);}
+}
+h1{
+text-align:center;
+font-family:'ZCOOL KuaiLe',cursive;
+color:var(--accent-color);
+font-size:1.8rem;
+margin-bottom:20px;
+}
+.section-card{
+background:white;
+border-radius:var(--card-radius);
+padding:20px;
+margin-bottom:20px;
+box-shadow:0 8px 20px rgba(255,175,204,.2);
+border:2px solid var(--light-pink);
+}
+.section-title{
+font-weight:700;
+margin-bottom:15px;
+color:var(--accent-color);
+display:flex;
+align-items:center;
+gap:8px;
+}
+.api-slot{
+background:var(--soft-white);
+border-radius:15px;
+padding:15px;
+margin-bottom:15px;
+border:1px dashed var(--primary-pink);
+}
+.slot-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+font-size:.9rem;
+}
+.input-item{margin-bottom:12px;}
+.input-item label{
+display:block;
+font-size:.75rem;
+margin-bottom:5px;
+color:#999;
+font-weight:600;
+}
+input{
+width:100%;
+padding:12px 15px;
+border-radius:10px;
+border:1.5px solid var(--light-pink);
+font-size:14px;
+}
+.btn-group{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+.btn{
+border:none;
+padding:12px;
+border-radius:15px;
+cursor:pointer;
+font-weight:700;
+font-size:.9rem;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+.btn-main{
+background:var(--accent-color);
+color:white;
+margin-top:10px;
+}
+.btn-sub{
+background:white;
+border:1.5px solid var(--primary-pink);
+color:var(--accent-color);
+}
+#toast{
+position:fixed;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+background:var(--accent-color);
+color:white;
+padding:12px 25px;
+border-radius:50px;
+display:none;
+font-weight:bold;
+z-index:100;
+}
+.footer{
+text-align:center;
+margin-top:20px;
+font-size:.8rem;
+color:#aaa;
+}
+</style>
+</head>
+
+<body>
+<div id="toast">保存成功</div>
+
+<div class="container">
+<h1>智控面板</h1>
+
+<div class="section-card">
+<div class="section-title">模型池配置</div>
+
+<div id="api-list">
+<!-- ===== 节点 1 ===== -->
+<div class="api-slot" data-index="0">
+<div class="slot-header">
+<span>节点 #1</span>
+<label><input type="radio" name="default_api" checked> 默认</label>
+</div>
+<div class="input-item">
+<label>API Key</label>
+<input type="password" class="key" placeholder="sk-...">
+</div>
+<div class="input-item">
+<label>接口地址</label>
+<input type="text" class="url" placeholder="https://api.openai.com/v1">
+</div>
+<div class="input-item">
+<label>模型名称</label>
+<input type="text" class="model" placeholder="gpt-4o">
+</div>
+</div>
+
+<!-- ===== 节点 2 ===== -->
+<div class="api-slot" data-index="1">
+<div class="slot-header">
+<span>节点 #2</span>
+<label><input type="radio" name="default_api"> 默认</label>
+</div>
+<div class="input-item">
+<label>API Key</label>
+<input type="password" class="key" placeholder="sk-...">
+</div>
+<div class="input-item">
+<label>接口地址</label>
+<input type="text" class="url" placeholder="https://api.openai.com/v1">
+</div>
+<div class="input-item">
+<label>模型名称</label>
+<input type="text" class="model" placeholder="gpt-4o">
+</div>
+</div>
+</div>
+
+<button class="btn btn-main" onclick="saveAll()">保存并应用</button>
+</div>
+
+<div class="section-card">
+<div class="section-title">数据管理</div>
+<div class="btn-group">
+<button class="btn btn-sub" onclick="exportConfig()">导出数据</button>
+<label class="btn btn-sub">
+导入数据
+<input type="file" hidden accept=".json" onchange="importConfig(this)">
+</label>
+</div>
+</div>
+
+<div class="footer">深度调控中心 v1.0</div>
+</div>
+
+<script>
+function showToast(msg){
+const t=document.getElementById('toast');
+t.innerText=msg;
+t.style.display='block';
+setTimeout(()=>t.style.display='none',2000);
+}
+
+function saveAll(){
+const slots=document.querySelectorAll('.api-slot');
+const config={defaultIndex:0,nodes:[],timestamp:Date.now()};
+slots.forEach((slot,i)=>{
+if(slot.querySelector('input[type=radio]').checked) config.defaultIndex=i;
+config.nodes.push({
+key:slot.querySelector('.key').value,
+url:slot.querySelector('.url').value,
+model:slot.querySelector('.model').value
+});
+});
+localStorage.setItem('llm_config',JSON.stringify(config));
+showToast('配置已保存');
+}
+
+function exportConfig(){
+const data=localStorage.getItem('llm_config');
+if(!data){showToast('无可导出数据');return;}
+const blob=new Blob([data],{type:'application/json'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='ai_settings.json';
+a.click();
+}
+
+function importConfig(input){
+const file=input.files[0];
+if(!file)return;
+const reader=new FileReader();
+reader.onload=e=>{
+const cfg=JSON.parse(e.target.result);
+localStorage.setItem('llm_config',JSON.stringify(cfg));
+location.reload();
+};
+reader.readAsText(file);
+}
+</script>
+</body>
+</html>

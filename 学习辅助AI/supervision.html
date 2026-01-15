@@ -1,0 +1,238 @@
+<!-- templates/supervision.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学习计划监督</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --pending: #f59e0b;
+            --doing: #3b82f6;
+            --done: #10b981;
+            --gray: #f3f4f6;
+            --text: #1f2937;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background: var(--gray);
+            color: var(--text);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        /* 添加任务 */
+        .add-area {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
+        }
+        .add-area input {
+            flex: 1;
+            padding: .6rem .8rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .btn {
+            padding: .6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+        /* 统计与鼓励 */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        }
+        .encourage {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        /* 任务列表 */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+        .task-card {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-info {
+            flex: 1;
+        }
+        .task-title {
+            font-weight: 600;
+            margin-bottom: .25rem;
+        }
+        .task-time {
+            font-size: .875rem;
+            color: #6b7280;
+        }
+        .task-status {
+            padding: .25rem .6rem;
+            border-radius: 9999px;
+            font-size: .75rem;
+            font-weight: 600;
+            color: #fff;
+            margin-right: .5rem;
+        }
+        .status-pending {
+            background: var(--pending);
+        }
+        .status-doing {
+            background: var(--doing);
+        }
+        .status-done {
+            background: var(--done);
+        }
+        .actions {
+            display: flex;
+            gap: .5rem;
+        }
+        .btn-sm {
+            padding: .4rem .8rem;
+            font-size: .875rem;
+        }
+        .btn-done {
+            background: var(--done);
+            color: #fff;
+        }
+        .btn-del {
+            background: #ef4444;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>学习计划监督</h1>
+
+        <!-- 添加任务 -->
+        <div class="add-area">
+            <input id="taskInput" type="text" placeholder="输入新任务，如：复习牛顿运动定律">
+            <button class="btn btn-primary" onclick="addTask()">添加</button>
+        </div>
+
+        <!-- 统计与鼓励 -->
+        <div class="stats">
+            <div>
+                今日完成：<span id="todayDone">0</span> &nbsp;|&nbsp;
+                总任务：<span id="totalTasks">0</span>
+            </div>
+            <div class="encourage" id="encourage">开始今天的学习吧！</div>
+        </div>
+
+        <!-- 任务列表 -->
+        <div class="task-list" id="taskList"></div>
+    </div>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('studyTasks') || '[]');
+        const STATUS_MAP = { pending: '待完成', doing: '进行中', done: '已完成' };
+
+        function saveTasks() {
+            localStorage.setItem('studyTasks', JSON.stringify(tasks));
+            render();
+        }
+
+        function render() {
+            const listEl = document.getElementById('taskList');
+            listEl.innerHTML = '';
+            tasks.forEach((t, idx) => {
+                const card = document.createElement('div');
+                card.className = 'task-card';
+                card.innerHTML = `
+                    <div class="task-info">
+                        <div class="task-title">${t.title}</div>
+                        <div class="task-time">计划时间：${t.time}</div>
+                    </div>
+                    <div class="actions">
+                        <span class="task-status status-${t.status}">${STATUS_MAP[t.status]}</span>
+                        ${t.status !== 'done' ? `<button class="btn btn-sm btn-done" onclick="markDone(${idx})">完成</button>` : ''}
+                        <button class="btn btn-sm btn-del" onclick="delTask(${idx})">删除</button>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+            updateStats();
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const title = input.value.trim();
+            if (!title) return;
+            tasks.push({
+                title,
+                time: new Date().toLocaleString('zh-CN'),
+                status: 'pending'
+            });
+            input.value = '';
+            saveTasks();
+        }
+
+        function markDone(idx) {
+            tasks[idx].status = 'done';
+            saveTasks();
+        }
+
+        function delTask(idx) {
+            tasks.splice(idx, 1);
+            saveTasks();
+        }
+
+        function updateStats() {
+            const total = tasks.length;
+            const today = new Date().toDateString();
+            const todayDone = tasks.filter(t => t.status === 'done' && new Date(t.time).toDateString() === today).length;
+            document.getElementById('todayDone').textContent = todayDone;
+            document.getElementById('totalTasks').textContent = total;
+
+            const enc = document.getElementById('encourage');
+            if (todayDone === 0 && total === 0) enc.textContent = '开始今天的学习吧！';
+            else if (todayDone === 0) enc.textContent = '加油，完成第一个任务！';
+            else if (todayDone < 3) enc.textContent = '不错，继续保持！';
+            else enc.textContent = '太棒了，今日目标达成！';
+        }
+
+        document.getElementById('taskInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') addTask();
+        });
+
+        render();
+    </script>
+</body>
+</html>
